@@ -25,3 +25,7 @@ A equipe deve criar endpoints para todos as possíveis ações fornecidas
 pela API.
 - Use um módulo com um json array para simular a base de dados dos times
 (conforme visto na API_HP).
+
+### Postman
+
+https://www.getpostman.com/collections/e8711bf1d7029bd096be
