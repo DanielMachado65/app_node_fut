@@ -5,7 +5,17 @@ const routes = express.Router();
 const DB = require('./database');
 
 routes.get('/times', (req, res) => {
-    res.status(200).json(DB.times);
+    if (req.query.name && isNaN(req.query.name)) {
+        results = DB.times.filter(a => a.name.includes(req.query.name))
+        if (results != undefined)
+            res.status(200).json(results)
+        else
+            res.status(400).json({ msg: 'not found' })
+    } else {
+        res.status(200).json(DB.times);
+
+    }
+
 })
 
 routes.get('/times/:id', (req, res) => {
@@ -25,23 +35,16 @@ routes.get('/times/:id', (req, res) => {
 })
 
 routes.post('/times', (req, res) => {
-    const {
-        name,
-        species,
-        house,
-        ancestry,
-        wand,
-        hogwartsStudent,
-        hogwartsStaff,
-    } = req.body
+    const { name, city, state, serie, titles, payment_check } = req.body
 
-    if ((name && species && house) != undefined) {
+    if ((name && city && state && serie && titles && payment_check) != undefined) {
         const id = DB.times.length + 1;
-        DB.times.push({
-            name, species, id, species, house, ancestry, wand,
-            hogwartsStudent, hogwartsStaff
-        })
-        res.status(200).json({ msg: 'personagem incluido com sucesso' })
+        let response = post({ ...req.body, id })
+
+        if (response['error'])
+            res.status(response.code).json({ error: response.error })
+        else
+            res.status(200).json({ data: response.data })
     } else {
         res.status(404).json({ msg: 'Dados obrigatórios não preenchidos [name, species, house]' })
     }
@@ -94,5 +97,30 @@ routes.delete('/times/:id', (req, res) => {
         }
     }
 })
+
+function post(params) {
+    let { id, name, city, state, serie, titles, payment_check } = params
+
+    serie = isValidSerie(serie)
+    titles = isValidTitle(titles)
+
+    if (serie == undefined) {
+        return { code: 404, error: "a serie deverá ser: {A, B, C ou vazia}" }
+    } else if (titles.length == 0) {
+        return { code: 404, error: "O titulo deve ser: {estadual, internacional ou nacional" }
+    } else {
+        DB.times.push({ name, city, id, state, payment_check, serie, titles })
+        // return last item
+        return { data: DB.times[-1], code: 200 }
+    }
+}
+
+function isValidSerie(serie) {
+    return ["A", "B", "C", ""].includes(serie) ? serie : null
+}
+
+function isValidTitle(titles) {
+    return titles.filter(f => ["nacional", "internacional", "estadual"].includes(f.type))
+}
 
 module.exports = routes;
