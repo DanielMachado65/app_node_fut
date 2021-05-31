@@ -2,19 +2,19 @@ const express = require('express');
 const routes = express.Router();
 
 // Db
-const DB = require('./characteres');
+const DB = require('./database');
 
-routes.get('/characteres', (req, res) => {
-    res.status(200).json(DB.characteres);
+routes.get('/times', (req, res) => {
+    res.status(200).json(DB.times);
 })
 
-routes.get('/characteres/:id', (req, res) => {
+routes.get('/times/:id', (req, res) => {
     if (isNaN(req.params.id)) {
         // não é um número
         res.sendStatus(400);
     } else {
         const id = parseInt(req.params.id);
-        const character = DB.characteres.find((c) => c.id == id);
+        const character = DB.times.find((c) => c.id == id);
 
         if (character != undefined) {
             res.status(200).json(character);
@@ -24,7 +24,7 @@ routes.get('/characteres/:id', (req, res) => {
     }
 })
 
-routes.post('/characteres', (req, res) => {
+routes.post('/times', (req, res) => {
     const {
         name,
         species,
@@ -36,8 +36,8 @@ routes.post('/characteres', (req, res) => {
     } = req.body
 
     if ((name && species && house) != undefined) {
-        const id = DB.characteres.length + 1;
-        DB.characteres.push({
+        const id = DB.times.length + 1;
+        DB.times.push({
             name, species, id, species, house, ancestry, wand,
             hogwartsStudent, hogwartsStaff
         })
@@ -47,12 +47,12 @@ routes.post('/characteres', (req, res) => {
     }
 })
 
-routes.put('/characteres/:id', (req, res) => {
+routes.put('/times/:id', (req, res) => {
     if (isNaN(req.params.id)) {
         res.status(400).json({ msg: 'não é númerico' })
     } else {
         const id = req.params.id;
-        const character = DB.characteres.find((c) => c.id == id);
+        const character = DB.times.find((c) => c.id == id);
 
         if (character != undefined) {
             const {
@@ -81,15 +81,15 @@ routes.put('/characteres/:id', (req, res) => {
     }
 })
 
-routes.delete('/characteres/:id', (req, res) => {
+routes.delete('/times/:id', (req, res) => {
     if (isNaN(req.params.id)) {
         res.status(400).json({ msg: 'não é númerico' })
     } else {
         const id = parseInt(req.params.id);
-        const index = DB.characteres.findIndex(c => c.id == id);
+        const index = DB.times.findIndex(c => c.id == id);
         if (index = -1) res.status(404).json({ msg: 'Person not found' })
         else {
-            DB.characteres.splice(index, 1);
+            DB.times.splice(index, 1);
             res.status(200).json({ msg: 'Personagem removido com sucesso' })
         }
     }
