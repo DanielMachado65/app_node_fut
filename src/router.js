@@ -39,12 +39,13 @@ routes.post('/times', (req, res) => {
 
     if ((name && city && state && serie && titles && payment_check) != undefined) {
         const id = DB.times.length + 1;
-        let response = post({ ...req.body, id })
 
+        let response = post({ ...req.body, id })
         if (response['error'])
             res.status(response.code).json({ error: response.error })
-        else
+        else {
             res.status(200).json({ data: response.data })
+        }
     } else {
         res.status(404).json({ msg: 'Dados obrigatórios não preenchidos [name, species, house]' })
     }
@@ -55,31 +56,33 @@ routes.put('/times/:id', (req, res) => {
         res.status(400).json({ msg: 'não é númerico' })
     } else {
         const id = req.params.id;
-        const character = DB.times.find((c) => c.id == id);
+        const time = DB.times.find((c) => c.id == id);
 
-        if (character != undefined) {
-            const {
-                name,
-                species,
-                house,
-                ancestry,
-                wand,
-                hogwartsStudent,
-                hogwartsStaff,
-            } = req.body
+        if (time != undefined) {
+            let { name, city, state, serie, titles, payment_check } = req.body
 
             // HACK: poderia ser feito com o outra modo    
-            if (name != undefined) character.name = name;
-            if (species != undefined) character.species = species;
-            if (house != undefined) character.house = house;
-            if (ancestry != undefined) character.ancestry = ancestry;
-            if (wand != undefined) character.wand = wand;
-            if (hogwartsStaff != undefined) character.hogwartsStaff;
-            if (hogwartsStudent != undefined) character.hogwartsStudent;
+            if (name != undefined) time.name = name;
+            if (city != undefined) time.city = city;
+            if (state != undefined) time.state = state;
+            if (payment_check != undefined) time.payment_check = payment_check;
 
-            res.status(200).json({ msg: 'update' });
+            if (serie != undefined) {
+                serie = isValidSerie(serie)
+                if(serie) time.serie = serie 
+                else return res.status(404).json({ error: 'Serie não é valida'})
+            }
+            if (titles != undefined) {
+                titles = isValidTitle(titles)
+
+                console.log(titles);
+                if(titles.length > 0) time.titles = titles
+                else return res.status(404).json({ error: 'Titulo não é valida'})
+            }
+            
+            res.status(200).json({ msg: time });
         } else {
-            res.status(404).json({ msg: "not found" })
+            res.status(404).json({ msg: "Time não encontrado" })
         }
     }
 })
@@ -89,11 +92,12 @@ routes.delete('/times/:id', (req, res) => {
         res.status(400).json({ msg: 'não é númerico' })
     } else {
         const id = parseInt(req.params.id);
-        const index = DB.times.findIndex(c => c.id == id);
-        if (index = -1) res.status(404).json({ msg: 'Person not found' })
+        let index = DB.times.findIndex(t => t.id == id);
+
+        if (index == -1) res.status(404).json({ msg: 'Time não encontrado' })
         else {
             DB.times.splice(index, 1);
-            res.status(200).json({ msg: 'Personagem removido com sucesso' })
+            res.status(200).json({ msg: 'Time removido com sucesso' })
         }
     }
 })
@@ -111,7 +115,7 @@ function post(params) {
     } else {
         DB.times.push({ name, city, id, state, payment_check, serie, titles })
         // return last item
-        return { data: DB.times[-1], code: 200 }
+        return { data: DB.times[DB.times.length - 1], code: 200 }
     }
 }
 
